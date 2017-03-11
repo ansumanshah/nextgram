@@ -3,8 +3,12 @@ import Router from 'next/router'
 
 import Modal from '../components/modal'
 
-export default class extends React.Component {
-  static getInitialProps () {
+import { initStore, startClock } from '../store'
+import withRedux from 'next-redux-wrapper'
+
+class App extends React.Component {
+  static getInitialProps ({ store, isServer }) {
+    store.dispatch({ type: 'TICK', light: !isServer, ts: Date.now() })
     return {
       photos: new Array(15).fill(0).map((v, k) => k + 1)
     }
@@ -17,10 +21,12 @@ export default class extends React.Component {
 
   // handling escape close
   componentDidMount () {
+    this.timer = this.props.dispatch(startClock())
     document.addEventListener('keydown', this.onKeyDown)
   }
 
   componentWillUnmount () {
+    clearInterval(this.timer)
     document.removeEventListener('keydown', this.onKeyDown)
   }
 
@@ -96,3 +102,5 @@ export default class extends React.Component {
     )
   }
 }
+
+export default withRedux(initStore)(App)
